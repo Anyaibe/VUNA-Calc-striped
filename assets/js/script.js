@@ -1,187 +1,174 @@
+'use strict';
+/* eslint-disable no-unused-vars */
+
 // ===============================
-// 🧠 SMART RESULT MEMORY FEATURE
+// UI Wiring — DOM only
+// All maths lives in src/calculator.js
+// Functions are called via onclick="" in index.html,
+// not from JS — ESLint can't see HTML so warns about them.
 // ===============================
 
-let LAST_RESULT = 0;
-var currentExpression = "";
+var currentExpression = '';
+var LAST_RESULT = 0;
 
 // ------------------------------
-// Theme Toggle Logic
+// Theme Toggle
 // ------------------------------
 function toggleTheme() {
-  const body = document.body;
-  const btn = document.getElementById("theme-toggle");
+  var body = document.body;
+  var btn = document.getElementById('theme-toggle');
 
-  body.classList.toggle("dark-mode");
+  body.classList.toggle('dark-mode');
 
-  if (body.classList.contains("dark-mode")) {
-    btn.innerHTML = "☀️";
-    btn.title = "Switch to light mode";
-    localStorage.setItem("theme", "dark");
+  if (body.classList.contains('dark-mode')) {
+    btn.innerHTML = '☀️';
+    btn.title = 'Switch to light mode';
+    localStorage.setItem('theme', 'dark');
   } else {
-    btn.innerHTML = "🌙";
-    btn.title = "Switch to dark mode";
-    localStorage.setItem("theme", "light");
+    btn.innerHTML = '🌙';
+    btn.title = 'Switch to dark mode';
+    localStorage.setItem('theme', 'light');
   }
 }
 
-// Set theme on page load from localStorage
-window.addEventListener("DOMContentLoaded", function () {
-  const theme = localStorage.getItem("theme");
-  const body = document.body;
-  const btn = document.getElementById("theme-toggle");
+window.addEventListener('DOMContentLoaded', function () {
+  var theme = localStorage.getItem('theme');
+  var btn = document.getElementById('theme-toggle');
 
   if (btn) {
-    if (theme === "dark") {
-      body.classList.add("dark-mode");
-      btn.innerHTML = "☀️";
-      btn.title = "Switch to light mode";
+    if (theme === 'dark') {
+      document.body.classList.add('dark-mode');
+      btn.innerHTML = '☀️';
+      btn.title = 'Switch to light mode';
     } else {
-      btn.innerHTML = "🌙";
-      btn.title = "Switch to dark mode";
+      btn.innerHTML = '🌙';
+      btn.title = 'Switch to dark mode';
     }
   }
 });
 
 // ------------------------------
-// Calculator State
+// Display
 // ------------------------------
-let left = "";
-let operator = "";
-let right = "";
-let steps = [];
-const MAX_STEPS = 6;
+function updateDisplay() {
+  document.getElementById('result').value = currentExpression || '0';
+}
 
 // ------------------------------
-// Basic Calculator Functions
+// Button Handlers
 // ------------------------------
 function appendToResult(value) {
   currentExpression += value.toString();
-  updateResult();
+  updateDisplay();
 }
 
 function bracketToResult(value) {
   currentExpression += value;
-  updateResult();
+  updateDisplay();
+}
+
+function operatorToResult(value) {
+  currentExpression += value;
+  updateDisplay();
 }
 
 function backspace() {
   currentExpression = currentExpression.slice(0, -1);
-  updateResult();
-}
-
-function operatorToResult(value) {
-  if (value === "^") {
-    currentExpression += "**";
-  } else {
-    currentExpression += value;
-  }
-  updateResult();
+  updateDisplay();
 }
 
 function clearResult() {
-  currentExpression = "";
-  updateResult();
+  currentExpression = '';
+  updateDisplay();
 }
 
-
-function normalizeExpression(expr) {
-  return expr
-    .replace(/asin\(/g, "asinDeg(")
-    .replace(/acos\(/g, "acosDeg(")
-    .replace(/atan\(/g, "atanDeg(")
-    .replace(/sin\(/g, "sinDeg(")
-    .replace(/cos\(/g, "cosDeg(")
-    .replace(/tan\(/g, "tanDeg(")
-    .replace(/asinh\(/g, "asinh(")
-    .replace(/sinh\(/g, "sinh(")
-    .replace(/\be\b/g, "Math.E")
-    .replace(/\bpi\b/g, "Math.PI");
-}
-
+// ------------------------------
+// Percent Helper
+// "200+10%" → uses engine to compute 200, then applies 10% of that
+// ------------------------------
 function percentToResult() {
-  if (!currentExpression) return;
+  if (!currentExpression) { return; }
 
-  const match = currentExpression.match(/(.+?)(\*\*|[+\-*/^])([0-9.]*)$/);
+  var match = currentExpression.match(/^(.+?)([+\-*/%])([0-9.]+)$/);
 
   if (!match) {
-    const num = parseFloat(currentExpression);
-    if (isNaN(num)) return;
-
+    var num = parseFloat(currentExpression);
+    if (isNaN(num)) { return; }
     currentExpression = (num / 100).toString();
   } else {
-    const leftPart = match[1];
-    const rightPart = match[3];
+    var leftPart = match[1];
+    var rightPart = match[3];
+    if (!rightPart) { return; }
 
-    if (!rightPart) return;
-
-    let leftVal;
-
+    var leftVal;
     try {
-      leftVal = eval(leftPart);
-    } catch (e) {
+      leftVal = evaluateExpression(leftPart);
+    } catch (_e) {
       leftVal = parseFloat(leftPart);
     }
 
-    const rightVal = parseFloat(rightPart);
-    if (isNaN(leftVal) || isNaN(rightVal)) return;
+    var rightVal = parseFloat(rightPart);
+    if (isNaN(leftVal) || isNaN(rightVal)) { return; }
 
-    const percentVal = (leftVal * rightVal) / 100;
-
-    currentExpression = percentVal.toString();
+    var percentVal = (leftVal * rightVal) / 100;
+    currentExpression = leftPart + match[2] + percentVal.toString();
   }
 
-  // 🔥 ADD THIS LINE
-  currentExpression += "*";
-
-  updateResult();
+  updateDisplay();
 }
 
 // ------------------------------
-// Calculate Result
+// Calculate (= button)
 // ------------------------------
-function calculateExpression(expression) {
-  try {
-   
-    let normalizedExpression = normalizeExpression(expression);
-
-    // 🧠 Replace "ans" with last result automatically
-    normalizedExpression = normalizedExpression.replace(
-      /\bans\b/gi,
-      LAST_RESULT,
-    );
-
-    // Calculate result
-    let result = eval(normalizedExpression);
-    console.log("Calculated result for expression:", expression, "->", result);
- 
-    if (isNaN(result) || !isFinite(result)) {
-      throw new Error();
-    }
-
-    return result;
-  } catch (e) {
-    return "Error";
-  }
-}
 function calculateResult() {
-  if (!currentExpression) return;
-    const display = document.getElementById("result"); 
-    // Calculate result
-    let result = calculateExpression(currentExpression);
-    result = String(result);
+  if (!currentExpression) { return; }
 
-    // Save result for future expressions
-    LAST_RESULT = result;
+  var display = document.getElementById('result');
 
-    // Display normally
-    display.value = result;
+  // Substitute "ans" with the last result
+  var expr = currentExpression.replace(/\bans\b/gi, LAST_RESULT.toString());
 
-    currentExpression = result;
-    updateResult();
+  var result;
+  try {
+    result = evaluateExpression(expr);
+  } catch (_e) {
+    display.value = 'Error';
+    currentExpression = '';
+    return;
+  }
+
+  LAST_RESULT = result;
+  currentExpression = String(result);
+  display.value = currentExpression;
 }
 
+// ------------------------------
+// HEX button handler — calls engine's convertToHex()
+// Named differently to avoid recursion with the engine function
+// ------------------------------
+function hexButtonPressed() {
+  if (!currentExpression) { return; }
 
-function updateResult() {
-  document.getElementById("result").value = currentExpression || "0";
+  var display = document.getElementById('result');
+  var num = parseFloat(currentExpression);
+
+  // If it looks like an expression (not a plain number), evaluate it first
+  if (isNaN(num) && currentExpression.match(/[+\-*/%^()]/)) {
+    try {
+      num = evaluateExpression(currentExpression);
+    } catch (_e) {
+      display.value = 'Error';
+      currentExpression = '';
+      return;
+    }
+  }
+
+  try {
+    var result = convertToHex(num.toString());
+    currentExpression = result;
+    display.value = result;
+  } catch (e) {
+    display.value = e.message;
+    currentExpression = '';
+  }
 }

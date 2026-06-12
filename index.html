@@ -1,98 +1,378 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Calculator</title>
-  <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <title>Vuna Calc — CI/CD Pipeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #ffffff;
+      --bg2:      #f6f8fa;
+      --bg3:      #f0f2f4;
+      --text:     #1c2128;
+      --muted:    #656d76;
+      --border:   rgba(0,0,0,0.12);
+      --border2:  rgba(0,0,0,0.2);
+      --accent:   #378ADD;
+      --green:    #1a7f37;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:     #0d1117;
+        --bg2:    #161b22;
+        --bg3:    #21262d;
+        --text:   #f0f6fc;
+        --muted:  #8b949e;
+        --border: rgba(255,255,255,0.1);
+        --border2:rgba(255,255,255,0.2);
+        --green:  #3fb950;
+      }
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg3);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: var(--bg);
+      border-bottom: 0.5px solid var(--border);
+      padding: 3.5rem 1.5rem 3rem;
+      text-align: center;
+    }
+
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      font-weight: 500;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 span { color: var(--accent); }
+
+    .hero p {
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 500px;
+      margin: 0 auto 2rem;
+      line-height: 1.7;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 11px 28px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 0.5px solid var(--border2);
+      padding: 11px 28px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    /* ── Terminal ── */
+    .terminal {
+      background: #0d1117;
+      border-radius: var(--radius-lg);
+      border: 0.5px solid #30363d;
+      padding: 1.25rem 1.5rem;
+      max-width: 540px;
+      margin: 0 auto;
+      text-align: left;
+      min-height: 260px;
+    }
+
+    .term-bar { display: flex; gap: 6px; margin-bottom: 1rem; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    .term-body {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.9;
+    }
+
+    .t-muted { color: #8b949e; }
+    .t-green  { color: #3fb950; }
+    .t-blue   { color: #58a6ff; }
+
+    /* ── Pipeline section ── */
+    .section {
+      padding: 2.5rem 1.5rem;
+    }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .pipeline {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .pipe-step {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      min-width: 128px;
+      text-align: center;
+      transition: border-color 0.3s, transform 0.3s;
+      flex-shrink: 0;
+    }
+
+    .pipe-step.active { border-color: var(--accent); transform: translateY(-3px); }
+    .pipe-step.done   { border-color: var(--green); }
+
+    .pipe-icon {
+      font-size: 20px;
+      margin-bottom: 6px;
+      color: var(--muted);
+    }
+
+    .pipe-step.active .pipe-icon { color: var(--accent); }
+    .pipe-step.done   .pipe-icon { color: var(--green); }
+
+    .pipe-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .pipe-desc { font-size: 11px; color: var(--muted); }
+
+    .arrow {
+      font-size: 18px;
+      color: var(--border2);
+      margin: 0 4px;
+      flex-shrink: 0;
+      padding-bottom: 1rem;
+    }
+
+    /* ── Stack cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+    }
+
+    .card-icon { font-size: 20px; color: var(--accent); margin-bottom: 8px; }
+    .card h3   { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+    .card p    { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 0.5px solid var(--border);
+      padding: 1.5rem;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ── Tabler icons ── */
+    .ti { font-family: 'tabler-icons'; font-style: normal; }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
 </head>
-
 <body>
-  <!-- Theme Toggle Button -->
-  <button class="btn btn-outline-secondary theme-toggle-btn" id="theme-toggle" onclick="toggleTheme()"
-    title="Toggle dark/light mode">
-    🌙
-  </button>
 
-  <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-lg-6 col-md-6 col-sm-8">
+  <!-- Hero -->
+  <section class="hero">
+    <p class="eyebrow">SEN 482 — DevOps Continuous Assessment</p>
+    <h1>Vuna <span>Calc</span><br>CI/CD Pipeline</h1>
+    <p>A stripped calculator app — built, tested, containerised, and auto-deployed on every git push using GitHub Actions, Docker, and FTP.</p>
 
-        <div class="border border-dotted border-3 rounded-3 p-3 mb-4 bg-white bg-opacity-50">
-          <h4 class="text-center group-header mb-0">VUNA CALCULATOR</h4>
-          <p class="text-center text-small text-muted">
-            <i>Created by set 2025/26 Software Engineering</i>
-          </p>
-        </div>
+    <div class="cta-row">
+      <a class="btn-primary" href="./calc/">Open Calculator</a>
+      <a class="btn-secondary" href="https://github.com/Anyaibe/VUNA-Calc-striped" target="_blank">View on GitHub</a>
+    </div>
 
-        <div class="row">
-          <div class="col-md-12">
-            <div class="card calculator-card">
-              <div class="card-body p-4">
-                <div class="calculator">
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="dot" style="background:#ff5f57"></div>
+        <div class="dot" style="background:#febc2e"></div>
+        <div class="dot" style="background:#28c840"></div>
+      </div>
+      <div class="term-body" id="term-output"></div>
+    </div>
+  </section>
 
-                  <div class="display-container">
-                    <input type="text" class="form-control" id="result" placeholder="0" disabled />
-                  </div>
-
-                  <div class="btn-grid">
-                    <!-- Row 1 -->
-                    <button class="btn btn-light"   onclick="bracketToResult('(')">(</button>
-                    <button class="btn btn-light"   onclick="bracketToResult(')')">)</button>
-                    <button class="btn btn-light"   onclick="backspace()">←</button>
-                    <button class="btn btn-action"  onclick="clearResult()">AC</button>
-
-                    <!-- Row 2 -->
-                    <button class="btn btn-light"    onclick="appendToResult(7)">7</button>
-                    <button class="btn btn-light"    onclick="appendToResult(8)">8</button>
-                    <button class="btn btn-light"    onclick="appendToResult(9)">9</button>
-                    <button class="btn btn-operator" onclick="operatorToResult('/')">÷</button>
-
-                    <!-- Row 3 -->
-                    <button class="btn btn-light"    onclick="appendToResult(4)">4</button>
-                    <button class="btn btn-light"    onclick="appendToResult(5)">5</button>
-                    <button class="btn btn-light"    onclick="appendToResult(6)">6</button>
-                    <button class="btn btn-operator" onclick="operatorToResult('*')">×</button>
-
-                    <!-- Row 4 -->
-                    <button class="btn btn-light"    onclick="appendToResult(1)">1</button>
-                    <button class="btn btn-light"    onclick="appendToResult(2)">2</button>
-                    <button class="btn btn-light"    onclick="appendToResult(3)">3</button>
-                    <button class="btn btn-operator" onclick="operatorToResult('+')">+</button>
-
-                    <!-- Row 5 -->
-                    <button class="btn btn-light"    onclick="appendToResult('.')">.</button>
-                    <button class="btn btn-light"    onclick="appendToResult(0)">0</button>
-                    <button class="btn btn-operator" onclick="percentToResult()">%</button>
-                    <button class="btn btn-operator" onclick="operatorToResult('-')">−</button>
-
-                    <!-- Row 6 — custom feature -->
-                    <button class="btn btn-operator" onclick="hexButtonPressed()">HEX</button>
-
-                    <!-- Equals — full width -->
-                    <button class="btn btn-equals" onclick="calculateResult()" style="grid-column: span 3;">=</button>
-                  </div>
-
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
+  <!-- Pipeline -->
+  <section class="section">
+    <p class="section-label">Pipeline flow</p>
+    <div class="pipeline">
+      <div class="pipe-step" id="s0">
+        <div class="pipe-icon"><i class="ti ti-git-commit" aria-hidden="true"></i></div>
+        <div class="pipe-name">git push</div>
+        <div class="pipe-desc">triggers workflow</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="pipe-step" id="s1">
+        <div class="pipe-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+        <div class="pipe-name">ci</div>
+        <div class="pipe-desc">lint + 22 tests</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="pipe-step" id="s2">
+        <div class="pipe-icon"><i class="ti ti-brand-docker" aria-hidden="true"></i></div>
+        <div class="pipe-name">docker</div>
+        <div class="pipe-desc">build + push image</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="pipe-step" id="s3">
+        <div class="pipe-icon"><i class="ti ti-world-upload" aria-hidden="true"></i></div>
+        <div class="pipe-name">deploy</div>
+        <div class="pipe-desc">FTP → public_html</div>
       </div>
     </div>
-  </div>
+  </section>
 
-  <button id="scroll-to-calculator" title="Back to Calculator">↑</button>
+  <!-- Stack -->
+  <section class="section" style="padding-top:0">
+    <p class="section-label">Tech stack</p>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon"><i class="ti ti-test-pipe" aria-hidden="true"></i></div>
+        <h3>Jest</h3>
+        <p>22 unit tests — arithmetic, edge cases, hex conversion</p>
+      </div>
+      <div class="card">
+        <div class="card-icon"><i class="ti ti-shield-check" aria-hidden="true"></i></div>
+        <h3>ESLint</h3>
+        <p>Static analysis — 0 errors, coverage gate enforced</p>
+      </div>
+      <div class="card">
+        <div class="card-icon"><i class="ti ti-brand-docker" aria-hidden="true"></i></div>
+        <h3>Docker</h3>
+        <p>Multi-stage build — node:20 → nginx:alpine</p>
+      </div>
+      <div class="card">
+        <div class="card-icon"><i class="ti ti-brand-github" aria-hidden="true"></i></div>
+        <h3>GitHub Actions</h3>
+        <p>3-job pipeline — ci gates docker and deploy</p>
+      </div>
+    </div>
+  </section>
 
-  <script src="assets/js/bootstrap.min.js"></script>
-  <!-- Engine first (pure maths, no DOM) -->
-  <script src="src/calculator.js"></script>
-  <!-- UI wiring second (calls engine functions) -->
-  <script src="assets/js/script.js"></script>
+  <footer>
+    Set 2025/26 · Software Engineering · VUNA · canaan.vudse26cloud.com
+  </footer>
+
+  <script>
+    const lines = [
+      { t: 't-muted', s: '$ git push origin main' },
+      { t: 't-muted', s: '' },
+      { t: 't-blue',  s: '▶ Triggered: CI/CD workflow' },
+      { t: 't-muted', s: '' },
+      { t: 't-muted', s: '  Job 1 — Lint & Test' },
+      { t: 't-green', s: '  ✓ ESLint: 0 errors' },
+      { t: 't-green', s: '  ✓ Jest: 22/22 passed' },
+      { t: 't-green', s: '  ✓ Coverage: 91% statements' },
+      { t: 't-muted', s: '' },
+      { t: 't-muted', s: '  Job 2 — Docker Build & Push' },
+      { t: 't-green', s: '  ✓ Image pushed to Docker Hub' },
+      { t: 't-muted', s: '' },
+      { t: 't-muted', s: '  Job 3 — Deploy via FTP' },
+      { t: 't-green', s: '  ✓ dist/ → public_html/' },
+      { t: 't-muted', s: '' },
+      { t: 't-blue',  s: '✓ Live: canaan.vudse26cloud.com' },
+    ];
+
+    const out   = document.getElementById('term-output');
+    const steps = ['s0','s1','s2','s3'].map(id => document.getElementById(id));
+    let li = 0;
+
+    function nextLine() {
+      if (li >= lines.length) {
+        steps.forEach(s => { s.classList.remove('active'); s.classList.add('done'); });
+        return;
+      }
+      const l = lines[li++];
+      const el = document.createElement('div');
+      el.className = l.t;
+      el.textContent = l.s || '\u00a0';
+      out.appendChild(el);
+
+      if (li === 1)  steps[0].classList.add('active');
+      if (li === 5)  { steps[0].classList.remove('active'); steps[0].classList.add('done'); steps[1].classList.add('active'); }
+      if (li === 9)  { steps[1].classList.remove('active'); steps[1].classList.add('done'); steps[2].classList.add('active'); }
+      if (li === 12) { steps[2].classList.remove('active'); steps[2].classList.add('done'); steps[3].classList.add('active'); }
+      if (li === 15) { steps[3].classList.remove('active'); steps[3].classList.add('done'); }
+
+      setTimeout(nextLine, l.s === '' ? 200 : 350);
+    }
+
+    setTimeout(nextLine, 600);
+  </script>
 
 </body>
-
 </html>
